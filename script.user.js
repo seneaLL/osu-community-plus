@@ -5,6 +5,8 @@
 // @grant       none
 // @version     1.0
 // @description Community fixes for osu! website
+// @updateURL   https://bit.ly/osu-community-plus
+// @downloadURL https://bit.ly/osu-community-plus
 // ==/UserScript==
 
 (() => {
