@@ -5,8 +5,8 @@
 // @grant none
 // @version 1.2
 // @description Community fixes for osu! website
-// @updateURL https://bit.ly/osu-community-plus
-// @downloadURL https://bit.ly/osu-community-plus
+// @updateURL https://github.com/seneaLL/osu-community-plus/blob/master/script.user.js
+// @downloadURL https://github.com/seneaLL/osu-community-plus/blob/master/script.user.js
 // ==/UserScript==
 
 const selectors = {
