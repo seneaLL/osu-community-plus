@@ -3,7 +3,7 @@
 // @namespace Violentmonkey Scripts
 // @match https://osu.ppy.sh/*
 // @grant none
-// @version 1.22
+// @version 1.23
 // @description Community fixes for osu! website
 // @updateURL https://raw.githubusercontent.com/seneaLL/osu-community-plus/refs/heads/master/script.user.js
 // @downloadURL https://raw.githubusercontent.com/seneaLL/osu-community-plus/refs/heads/master/script.user.js
@@ -17,7 +17,11 @@ const selectors = {
   beatmapset__popup__item: ".beatmaps-popup-item",
 };
 
-let settings = { beatmaps: { showLength: true }, profileOrder: ["me", "recent_activity", "top_ranks", "historical", "medals", "beatmaps", "kudosu"] };
+let settings = {
+  beatmaps: { showLength: true },
+  profile: { customOrder: false },
+  profileOrder: ["me", "recent_activity", "top_ranks", "historical", "medals", "beatmaps", "kudosu"],
+};
 
 // Core/Initialization Functions
 
@@ -30,7 +34,7 @@ const init = () => {
   waitForContainer(selectors.user__menu, setupSettingsMenu);
 
   if (pathname.includes("/beatmapsets") && settings.beatmaps.showLength) waitForContainer(selectors.beatmapsets__json, setupBeatmapsetsPage);
-  if (pathname.includes("/users/")) waitForContainer(selectors.user__profile, sortProfilePages);
+  if (pathname.includes("/users/") && settings.profile.customOrder) waitForContainer(selectors.user__profile, sortProfilePages);
 };
 
 const observerPathname = () => {
@@ -83,15 +87,17 @@ const injectStyles = () => {
                 .ocp-modal{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;z-index:1000}
                 .ocp-modal--visible{opacity:1;visibility:visible}
                 .ocp-modal__backdrop{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5)}
-                .ocp-modal__content{position:relative;display:flex;gap:20px;flex-direction:column;z-index:1001;background:hsl(var(--hsl-b6));padding:50px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1);animation:ocp-modal-slide-in .3s ease-out}
+                .ocp-modal__content{position:relative;width:400px;display:flex;gap:20px;flex-direction:column;z-index:1001;background:hsl(var(--hsl-b6));padding:50px;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1);animation:ocp-modal-slide-in .3s ease-out}
+                .ocp-modal__content h2{text-align:center;}
+                .ocp-modal__content label{font-size:16px;}
                 .ocp-modal__close-button{margin-top:10px;padding:10px 20px;border:none;background-color:#007bff;color:#fff;font-size:16px;border-radius:4px;cursor:pointer}
                 .ocp-modal__close-button:hover{background-color:#0056b3}
-                .ocp-profile-order{max-width:400px;margin:20px auto;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
-                .ocp-profile-order h2{margin-bottom:20px;}
+                .ocp-profile-order{margin:20px auto;width:100%;border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,.1)}
+                .ocp-profile-order h2{margin-bottom:20px;text-align:center;}
                 .ocp-profile-order__list{display:flex;flex-direction:column;gap:10px;}
-                .ocp-profile-order__item{padding:15px;background:hsl(var(--hsl-h1));color:#fff;border-radius:4px;text-align:center;cursor:grab;transition:transform .2s}
+                .ocp-profile-order__item{padding:15px;background:hsl(var(--hsl-h1));color:#fff;border-radius:4px;text-align:center;cursor:grab;transition:transform .2s;user-select:none}
                 .ocp-profile-order__item:active{cursor:grabbing;transform:scale(1.05)}
-                .ocp-profile-order__item.inactive{opacity:.5;transition:opacity .2s}
+                .ocp-profile-order__item.inactive{opacity:.5;transition:opacity .2s;cursor:not-allowed;}
             `;
   document.head.appendChild(style);
 
@@ -267,15 +273,19 @@ const createSettingsModal = () => {
                       <h2>OCP Settings</h2>
                       <label>
                           <input type="checkbox" id="showLengthCheckbox" ${settings.beatmaps.showLength ? "checked" : ""} />
-                          Показывать длительность beatmaps
+                          Show beatmaps length
+                      </label>
+                      <label>
+                          <input type="checkbox" id="profileCustomOrderCheckbox" ${settings.profile.customOrder ? "checked" : ""} />
+                          Profile Blocks Custom Order
                       </label>
                       <div class="ocp-profile-order">
-                          <h2>Порядок профиля</h2>
+                          <h2>Profile Order</h2>
                           <div class="ocp-profile-order__list" id="sortableList">
-                              ${settings.profileOrder.map((profile) => `<div class="ocp-profile-order__item" draggable="true">${profile}</div>`).join("")}
+                              ${settings.profileOrder.map((profile) => `<div class="ocp-profile-order__item${!settings.profile.customOrder ? " inactive" : ""}" draggable="${settings.profile.customOrder}">${profile}</div>`).join("")}
                           </div>
                       </div>
-                      <button class="ocp-modal__close-button">Close & Save</button>
+                      <button class="ocp-modal__close-button">Close</button>
                   </div>
             `;
   document.body.appendChild(modal);
@@ -283,6 +293,7 @@ const createSettingsModal = () => {
   const closeButton = modal.querySelector(".ocp-modal__close-button");
   const backdrop = modal.querySelector(".ocp-modal__backdrop");
   const showLengthCheckbox = modal.querySelector("#showLengthCheckbox");
+  const profileCustomOrderCheckbox = modal.querySelector("#profileCustomOrderCheckbox");
   const sortableList = modal.querySelector("#sortableList");
 
   const closeModal = () => {
@@ -296,6 +307,17 @@ const createSettingsModal = () => {
   showLengthCheckbox.addEventListener("change", () => {
     settings.beatmaps.showLength = showLengthCheckbox.checked;
     localStorage.setItem("ocp-settings", JSON.stringify(settings));
+  });
+
+  profileCustomOrderCheckbox.addEventListener("change", () => {
+    settings.profile.customOrder = profileCustomOrderCheckbox.checked;
+    localStorage.setItem("ocp-settings", JSON.stringify(settings));
+
+    const dragableItems = document.querySelectorAll(".ocp-profile-order__item");
+    dragableItems.forEach((item) => {
+      item.draggable = settings.profile.customOrder;
+      item.classList[settings.profile.customOrder ? "remove" : "add"]("inactive");
+    });
   });
 
   restoreOrder(sortableList);
@@ -326,10 +348,13 @@ const initializeDragAndDrop = (listElement) => {
   let draggedItem = null;
 
   const updateOrderInLocalStorage = () => {
+    if (!settings.profile.customOrder) return;
+
     const order = [...listElement.children].map((item) => item.textContent.trim());
     settings.profileOrder = order;
     localStorage.setItem("ocp-settings", JSON.stringify(settings));
-    sortProfilePages();
+
+    if (settings.profile.customOrder) sortProfilePages();
   };
 
   listElement.addEventListener("dragstart", (e) => {
