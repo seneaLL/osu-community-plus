@@ -3,10 +3,10 @@
 // @namespace Violentmonkey Scripts
 // @match https://osu.ppy.sh/*
 // @grant none
-// @version 1.21
+// @version 1.22
 // @description Community fixes for osu! website
-// @updateURL https://github.com/seneaLL/osu-community-plus/blob/master/script.user.js
-// @downloadURL https://github.com/seneaLL/osu-community-plus/blob/master/script.user.js
+// @updateURL https://raw.githubusercontent.com/seneaLL/osu-community-plus/refs/heads/master/script.user.js
+// @downloadURL https://raw.githubusercontent.com/seneaLL/osu-community-plus/refs/heads/master/script.user.js
 // ==/UserScript==
 
 const selectors = {
